@@ -46,6 +46,10 @@ We project future values for the trend using weighted linear regression (we weig
 ![alt text](MethodologyExamples/decompose_LS_method.png "")
 
 ### 2.2. Signal-Trend Decomposition with ARIMA Model
+To make predictions with an ARIMA model, the data must be stationary after differencing with the order specified in the model. This means that ARIMA cannot natively handle seasonal data. While there are many methods for removing the seasonality (including simple differences), we again use pythons built-in function. Similar to the prior method, we make projections on the individual components and then add them together.
+
+Alternatively, we could use a SARIMA model which models the seasonal component concurrently with the elements of the ARIMA model. However, a general-purpose SARIMA model has multiple parameters that must be carefully tuned. This generally requires looking at partial autocorrelation plots and making judgment call's on the degree of the model. To make this method more generalizable, we stick with our simpler implementation of ARIMA.
+
 ![alt text](MethodologyExamples/decompose_ARIMA_method.png "")
 
 ### 2.3. Simple Lagged Yearly Comp Method
