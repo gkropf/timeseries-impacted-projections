@@ -13,7 +13,7 @@ The first file to be executed is run_forecasts.py. This file will read data from
 
 You can then optionally run plot_all_forecasts.py which will read the output from run_forecasts.py, iterate through each hierarchy, aggregate the data across all stores, and save plots of the real vs. projected values into the Output folder. 
 
-![alt text](Output/2019_projections0.png "Example of output from plot_all_forecasts.py")
+![alt text](Output/2019_projections0.png "Example of output from plot_all_forecasts.py"){:height="50%" width="50%"}
 
 ### 1.2 File parameters.
 There are only a few parameters that need to be adjusted within with each script to get started. 
