@@ -53,6 +53,9 @@ Alternatively, we could use a SARIMA model which models the seasonal component c
 ![alt text](MethodologyExamples/decompose_ARIMA_method.png "")
 
 ### 2.3. Simple Lagged Yearly Comp Method
+
+The last projection model we implemented is the simplest and performed the best across a variety of data. This method works iteratively. It projects the next value in a sequence by computing the average yearly change of the most recent 20 weeks, and adding this average to the value observed one year ago. The method is essentially a lagged version of the signal added to a running average of itself. The *run_forecasts.py* script defaults to this method. While there are certainly more advanced methodologies available, similar to SARIMA, they generally require advanced tuning specific to each data set.
+
 ![alt text](MethodologyExamples/lag_comp_method.png "")
 
 
