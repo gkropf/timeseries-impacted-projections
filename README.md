@@ -11,6 +11,8 @@ The forecast algorithm will iterate through every store-category pair, make indi
 ### 1.1 File descriptions and order of execution.
 The first file to be executed is run_forecasts.py. This file will read data from a pre-defined location and, using the forecasting functions it imports from forecasts_methods.py, save two files containing the real and projected metric values into the Output folder. 
 
+Before running the projections for your year of interest, we recommend running the projections for the same time last year to gauge the model's performance on your data. Once *run_forecasts.py* has been run with last year's data, you can run *evaluate_model_errors.py* which will output a CSV containing the model errors for each hierarchy. These errors are at the total fleet-level (i.e. the prediction errors for any individual store will be higher than for the total fleet).
+
 You can then optionally run plot_all_forecasts.py which will read the output from run_forecasts.py, iterate through each hierarchy, aggregate the data across all stores, and save plots of the real vs. projected values into the Output folder. 
 
 ![alt text](Output/2019_projections0.png "Example of output from plot_all_forecasts.py")
