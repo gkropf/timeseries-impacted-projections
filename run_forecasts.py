@@ -8,7 +8,7 @@ from forecast_methods import *
 # Set params
 year_start = 2019
 week_start = 10
-metric_list = ['revenue','units']
+metric_list = ['revenue','traffic']
 method = 'lag_comp' # can be 'lag_comp', 'decomp_LS', or 'decomp_arima'
 input_file = 'sample_input_data.csv'
 
@@ -34,11 +34,9 @@ complete_weeks = complete_weeks[complete_weeks['date_day']==7]
 pds_data = pd.merge(pds_data,complete_weeks.reset_index().drop('date_day',axis=1), on=['year','week_num'])
 
 # Aggregate to the year-week level (dropping date_day)
-pds_data = pds_data.groupby(['hierarchy','store_id','year','week_num']).sum()[['revenue','units']]
+pds_data = pds_data.groupby(['hierarchy','store_id','year','week_num']).sum()[metric_list]
 pds_data.reset_index(inplace=True)
 pds_data.sort_values(['hierarchy','store_id','year','week_num'], inplace=True)
-pds_data = pds_data[pds_data['units']>=1]
-
 
 # Set up dataframe that matches every stores first year of sales for each category. This average
 # will be used to make predictions for newly opened stores.
@@ -55,12 +53,12 @@ num_data_weeks.columns = ['num_data_weeks']
 num_data_weeks.reset_index(inplace=True)
 first_year_data = pd.merge(first_year_data, num_data_weeks, on=['hierarchy','store_id'])
 first_year_data = first_year_data[first_year_data['num_data_weeks']==52]
-first_year_data = first_year_data.groupby(['hierarchy','weeks_since_open']).mean()[['revenue','units']]
+first_year_data = first_year_data.groupby(['hierarchy','weeks_since_open']).mean()[metric_list]
 first_year_data.reset_index(inplace=True)
 
 # Set up dataframe to store projections in.
 real_df = pds_data[pds_data['year']<=year_start]
-proj_df = pd.DataFrame(columns=['hierarchy','store_id','year','week_num','proj_revenue','proj_units'])
+proj_df = pd.DataFrame(columns=['hierarchy','store_id','year','week_num']+['proj_'+metric for metric in metric_list])
 
 
 # Start projection loop, we will iterate through every hierarchy and store_id and make individual projections
@@ -76,8 +74,10 @@ for curr_group in all_groups:
 	for curr_store in [x for x in all_stores if x!= 356]:
 		train = curr_group_data[curr_group_data['store_id']==curr_store]
 		curr_proj_df = pd.DataFrame(columns=['hierarchy','store_id','year','week_num','proj_revenue','proj_units'])
-		if sum(train['units'].values)<1:
-			print(curr_store)
+
+		# Remove store if there is no non-zero data
+		if sum(abs(train[metric_list].values), axis=None)<1:
+			print(f'Dropped store {curr_store}')
 			continue
 
 		# get train data and zerofill between dates
