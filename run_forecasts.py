@@ -73,7 +73,7 @@ for curr_group in all_groups:
 
 	for curr_store in [x for x in all_stores if x!= 356]:
 		train = curr_group_data[curr_group_data['store_id']==curr_store]
-		curr_proj_df = pd.DataFrame(columns=['hierarchy','store_id','year','week_num','proj_revenue','proj_units'])
+		curr_proj_df = pd.DataFrame(columns=['hierarchy','store_id','year','week_num']+['proj_'+metric for metric in metric_list])
 
 		# Remove store if there is no non-zero data
 		if sum(abs(train[metric_list].values), axis=None)<1:

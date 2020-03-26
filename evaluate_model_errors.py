@@ -9,7 +9,7 @@ import itertools
 # Set params
 year_start = 2019
 week_start = 10
-metric_list = ['revenue','units']
+metric_list = ['revenue','traffic']
 
 # Read in data
 real_df = pd.read_csv(f'Output/{year_start}_real.csv', header=0)
