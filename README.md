@@ -15,7 +15,7 @@ Before running the projections for your year of interest, we recommend running t
 
 You can then optionally run plot_all_forecasts.py which will read the output from run_forecasts.py, iterate through each hierarchy, aggregate the data across all stores, and save plots of the real vs. projected values into the Output folder. An example output:
 
-![alt text](Output/2019_projections0.png "")
+![alt text](Output/2019_projected_revenue_batch0.png "")
 
 ### 1.2 File parameters.
 There are only a few parameters that need to be adjusted within with each script to get started. 
