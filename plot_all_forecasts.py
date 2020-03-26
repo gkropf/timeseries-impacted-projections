@@ -53,7 +53,7 @@ for batch in range(num_batchs):
 		ind = plot_df[(plot_df['year']==year_start) & (plot_df['week_num']==week_start-1)].index.values[0]
 		plot_df.at[ind,'proj_'+plot_metric] = plot_df.loc[ind, plot_metric]
 
-		ax = fig.add_subplot(num_rows,num_columns,k+1-6*batch)
+		ax = fig.add_subplot(num_rows,num_columns,k+1)
 		ax.plot(arange(6,len(plot_df)),plot_df.iloc[6:,:][plot_metric].values,'-',color='#d45087',label=f'Actual {plot_metric}')
 		ax.plot(arange(6,len(plot_df)),plot_df.iloc[6:,:]['proj_'+plot_metric].values,'--',color='#003f5c',label=f'Projected {plot_metric}')
 		ax.set_xticks(25*arange(0,len(plot_df)//25+1)-7)
