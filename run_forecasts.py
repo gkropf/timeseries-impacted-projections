@@ -26,7 +26,15 @@ week_df['week_num'] = week_nums
 pds_data = pd.read_csv(input_file, header=0)
 pds_data['year'] = [int(x.split('-')[0]) for x in pds_data['date_day'].values]
 pds_data['month_day'] = [(int(x.split('-')[1]),int(x.split('-')[2])) for x in pds_data['date_day'].values]
-pds_data = pd.merge(pds_data, week_df).groupby(['hierarchy','store_id','year','week_num']).sum()[['revenue','units']]
+pds_data = pd.merge(pds_data, week_df)
+
+# Remove weeks that haven't completed
+complete_weeks = pd.DataFrame(pds_data.groupby(['year','week_num']).date_day.nunique())
+complete_weeks = complete_weeks[complete_weeks['date_day']==7]
+pds_data = pd.merge(pds_data,complete_weeks.reset_index().drop('date_day',axis=1), on=['year','week_num'])
+
+# Aggregate to the year-week level (dropping date_day)
+pds_data = pds_data.groupby(['hierarchy','store_id','year','week_num']).sum()[['revenue','units']]
 pds_data.reset_index(inplace=True)
 pds_data.sort_values(['hierarchy','store_id','year','week_num'], inplace=True)
 pds_data = pds_data[pds_data['units']>=1]
