@@ -90,6 +90,10 @@ for curr_group in all_groups:
 		if len(train)<5:
 			continue
 
+		# If the store is closed (three consecutive weeks of zeros), do not make projections.
+		if max(train.iloc[-3:,:][metric_list].values.reshape(-1))<0.001:
+			continue
+
 		# Make projections for remainder of year for each metric.
 		for metric in metric_list:
 			timeseries = train[metric].values
@@ -117,8 +121,7 @@ for curr_group in all_groups:
 		curr_proj_df['week_num'] = arange(1,53)
 		proj_df = proj_df.append(curr_proj_df)
 
-
-
+real_df.drop('total_week_num', axis=1, inplace=True)
 real_df.sort_values(['hierarchy','store_id','year','week_num']).to_csv(f'Output/{year_start}_real.csv', header=True, index=False)
 proj_df.sort_values(['hierarchy','store_id','year','week_num']).to_csv(f'Output/{year_start}_projected.csv', header=True, index=False)
 
