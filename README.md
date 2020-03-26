@@ -13,9 +13,9 @@ The first file to be executed is run_forecasts.py. This file will read data from
 
 Before running the projections for your year of interest, we recommend running the projections for the same time last year to gauge the model's performance on your data. Once *run_forecasts.py* has been run with last year's data, you can run *evaluate_model_errors.py* which will output a CSV containing the model errors for each hierarchy. These errors are at the total fleet-level (i.e. the prediction errors for any individual store will be higher than for the total fleet).
 
-You can then optionally run plot_all_forecasts.py which will read the output from run_forecasts.py, iterate through each hierarchy, aggregate the data across all stores, and save plots of the real vs. projected values into the Output folder. 
+You can then optionally run plot_all_forecasts.py which will read the output from run_forecasts.py, iterate through each hierarchy, aggregate the data across all stores, and save plots of the real vs. projected values into the Output folder. An example output:
 
-![alt text](Output/2019_projections0.png "Example of output from plot_all_forecasts.py")
+![alt text](Output/2019_projections0.png "")
 
 ### 1.2 File parameters.
 There are only a few parameters that need to be adjusted within with each script to get started. 
