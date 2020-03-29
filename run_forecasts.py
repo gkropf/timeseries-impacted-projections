@@ -8,7 +8,6 @@ from forecast_methods import *
 # Set params
 year_start = 2019
 week_start = 10
-metric_list = ['revenue','traffic']
 method = 'lag_comp' # can be 'lag_comp', 'decomp_LS', or 'decomp_arima'
 input_file = 'sample_input_data.csv'
 
@@ -34,9 +33,9 @@ complete_weeks = complete_weeks[complete_weeks['date_day']==7]
 pds_data = pd.merge(pds_data,complete_weeks.reset_index().drop('date_day',axis=1), on=['year','week_num'])
 
 # Aggregate to the year-week level (dropping date_day)
-pds_data = pds_data.groupby(['hierarchy','store_id','year','week_num']).sum()[metric_list]
+pds_data = pd.DataFrame(pds_data.groupby(['hierarchy','store_id','year','week_num','metric']).sum()['value'])
 pds_data.reset_index(inplace=True)
-pds_data.sort_values(['hierarchy','store_id','year','week_num'], inplace=True)
+pds_data.sort_values(['hierarchy','store_id','metric','year','week_num'], inplace=True)
 
 # Set up dataframe that matches every stores first year of sales for each category. This average
 # will be used to make predictions for newly opened stores.
@@ -53,17 +52,19 @@ num_data_weeks.columns = ['num_data_weeks']
 num_data_weeks.reset_index(inplace=True)
 first_year_data = pd.merge(first_year_data, num_data_weeks, on=['hierarchy','store_id'])
 first_year_data = first_year_data[first_year_data['num_data_weeks']==52]
-first_year_data = first_year_data.groupby(['hierarchy','weeks_since_open']).mean()[metric_list]
+first_year_data = pd.DataFrame(first_year_data.groupby(['hierarchy','weeks_since_open','metric']).mean()['value'])
 first_year_data.reset_index(inplace=True)
 
 # Set up dataframe to store projections in.
 real_df = pds_data[pds_data['year']<=year_start]
-proj_df = pd.DataFrame(columns=['hierarchy','store_id','year','week_num']+['proj_'+metric for metric in metric_list])
+proj_df = pd.DataFrame(columns=['hierarchy','store_id','year','week_num','metric','projected_value'])
+
 
 
 # Start projection loop, we will iterate through every hierarchy and store_id and make individual projections
 # for the remainder of the year.
 all_groups = sort(list(set(real_df['hierarchy'].values)))
+metric_list = list(set(pds_data['metric'].values))
 for curr_group in all_groups:
 	curr_group_data = pds_data[pds_data['hierarchy']==curr_group]
 	curr_group_data = curr_group_data[curr_group_data['year']<=year_start]
@@ -72,66 +73,66 @@ for curr_group in all_groups:
 	temp_store_count = 0
 
 	for curr_store in all_stores:
-		train = curr_group_data[curr_group_data['store_id']==curr_store]
-		curr_proj_df = pd.DataFrame(columns=['hierarchy','store_id','year','week_num']+['proj_'+metric for metric in metric_list])
+		curr_store_data = curr_group_data[curr_group_data['store_id']==curr_store]
 
-		# Remove store if there is no non-zero data
-		if sum(abs(train[metric_list].values), axis=None)<1:
-			print(f'Dropped store {curr_store}')
-			continue
-
-		# get train data and zerofill between dates
-		min_year = train.iloc[0]['year']
-		all_dates = [(year_start,i) for i in range(1,week_start)]
-		if min_year<year_start:
-			all_dates += [(train.iloc[0]['year'],x) for x in arange(train.iloc[0]['week_num'],53)]
-			all_dates += [x for x in itertools.product(arange(train.iloc[0]['year']+1,year_start),arange(1,53))]
-		
-		all_dates = pd.DataFrame(array(all_dates))
-		all_dates.columns = ['year','week_num']
-
-		# Remove leading zeros from before store opened.
-		train = pd.merge(train, all_dates, how='right').sort_values(['year','week_num']).fillna(0)
-		train = train.iloc[min(arange(len(train))[train[metric_list].min(axis=1)>0]):,:]
-		
-		# If the store has been open for less than a month, do not make projections.
-		if len(train)<5:
-			continue
-
-		# If the store is closed (three consecutive weeks of zeros), do not make projections.
-		if max(train.iloc[-3:,:][metric_list].values.reshape(-1))<0.001:
-			continue
-
-		# Make projections for remainder of year for each metric.
 		for metric in metric_list:
-			timeseries = train[metric].values
+			curr_proj_df = pd.DataFrame(columns=['hierarchy','store_id','year','week_num','metric','projected_value'])
+			train = curr_store_data[curr_store_data['metric']==metric]
+
+			# Remove store if there is no non-zero data
+			if sum(abs(train['value'].values), axis=None)<1:
+				print(f'Dropped store {curr_store}')
+				continue
+
+			# get train data and zerofill between dates
+			min_year = train.iloc[0]['year']
+			all_dates = [(year_start,i) for i in range(1,week_start)]
+			if min_year<year_start:
+				all_dates += [(train.iloc[0]['year'],x) for x in arange(train.iloc[0]['week_num'],53)]
+				all_dates += [x for x in itertools.product(arange(train.iloc[0]['year']+1,year_start),arange(1,53))]
+			
+			all_dates = pd.DataFrame(array(all_dates))
+			all_dates.columns = ['year','week_num']
+
+			# Remove leading zeros from before store opened.
+			train = pd.merge(train, all_dates, how='right').sort_values(['year','week_num']).fillna(0)
+			train = train.iloc[min(arange(len(train))[train['value']>0]):,:]
+			timeseries = train['value'].values
+
+			# If the store has been open for less than a month, do not make projections.
+			if len(train)<5:
+				continue
+
+			# If the store is closed (three consecutive weeks of zeros), do not make projections.
+			if max(abs(timeseries[-3:]))<0.001:
+				continue
+
 
 			# If we have less than a year of data, use the average first year sales
 			if len(timeseries)<53:
-				avg_first_year = first_year_data[first_year_data['hierarchy']==curr_group][metric].values
-				curr_proj_df['proj_'+metric] = (mean(timeseries)/mean(avg_first_year))*avg_first_year
+				avg_first_year = first_year_data[(first_year_data['hierarchy']==curr_group) & (first_year_data['metric']==metric)]['value'].values
+				curr_proj_df['projected_value'] = (mean(timeseries)/mean(avg_first_year))*avg_first_year
 			else:
 				if method == 'lag_comp':
-					curr_proj_df['proj_'+metric] = forecast_lag_comp(timeseries, 20, 52-week_start+1)
+					curr_proj_df['projected_value'] = forecast_lag_comp(timeseries, 20, 52-week_start+1)
 				elif method == 'decomp_LS':
-					curr_proj_df['proj_'+metric] = forecast_decomp_LS(timeseries, 2, 52-week_start+1)
+					curr_proj_df['projected_value'] = forecast_decomp_LS(timeseries, 2, 52-week_start+1)
 				elif method == 'decomp_arima':
-					curr_proj_df['proj_'+metric] = forecast_decomp_arima(timeseries, 52-week_start+1)
+					curr_proj_df['projected_value'] = forecast_decomp_arima(timeseries, 52-week_start+1)
 				else:
 					print('No forecast method selected')
 					sys.exit()
 
-		
-
-		curr_proj_df['hierarchy'] = curr_group
-		curr_proj_df['year'] = year_start
-		curr_proj_df['store_id'] = curr_store
-		curr_proj_df['week_num'] = arange(1,53)
-		proj_df = proj_df.append(curr_proj_df)
+			curr_proj_df['hierarchy'] = curr_group
+			curr_proj_df['year'] = year_start
+			curr_proj_df['store_id'] = curr_store
+			curr_proj_df['week_num'] = arange(1,53)
+			curr_proj_df['metric'] = metric
+			proj_df = proj_df.append(curr_proj_df)
 
 real_df.drop('total_week_num', axis=1, inplace=True)
-real_df.sort_values(['hierarchy','store_id','year','week_num']).to_csv(f'Output/{year_start}_real.csv', header=True, index=False)
-proj_df.sort_values(['hierarchy','store_id','year','week_num']).to_csv(f'Output/{year_start}_projected.csv', header=True, index=False)
+real_df.sort_values(['hierarchy','store_id','metric','year','week_num']).to_csv(f'Output/{year_start}_real.csv', header=True, index=False)
+proj_df.sort_values(['hierarchy','store_id','metric','year','week_num']).to_csv(f'Output/{year_start}_projected.csv', header=True, index=False)
 
 
 
