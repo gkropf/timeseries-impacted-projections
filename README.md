@@ -65,18 +65,31 @@ The last projection model we implemented is the simplest and performed the best 
 
 ## 3. Spreadsheet Scenario Planning
 This spreadsheet tabs are colored by their purpose: (1) outputs = green (2) scenario-planning adjustable fields = orange (3) input data = blue.
+
 ### 3.1. Add Data
-To use this spreadsheet, you will need prediction and actual data on the store-category-week level as produced from the above Python model (run_forecasts.py). The current spreadsheet is built around revenue and units sold metrics but could be updated for any other metrics of interest. Data can be copy and pasted into the "Raw Predictions" and "Actual Values" tabs. Columns for store, week, category and one or two metrics should retain the same ordering as the example spreadsheet.
+To use this spreadsheet, you will need prediction and actual data on the store-category-week level as produced from the above Python model (run_forecasts.py). Data can be copy and pasted into the "PASTE HERE Actuals" and "PASTE HERE Projections" tabs. Columns for store, week, year, category, metric, and values should retain the same ordering as the example spreadsheet.
 
-Store-region information can be added to the "Store State Lookup" tab.
+Store-region information can be added to the "Store to Region" tab.
 
-Once the raw data has been updated, the pivot tables in the last 3 tabs should be refreshed.
 ### 3.2. Adjust Other Fields as Necessary
-There are a few fields which will need to be hand-adjusted based on your data. For instance, the number of category columns will need to be adjusted one most of the output and adjustable-value tabs. In addition, one with other metrics may wish to adjust the revenue/units toggle or the tab and column names. Such changes may require adjustments to dependent pivot tables, formulas, etc.
+There are a few fields which will need to be manually-adjusted based on your data. Several tabs will need to reflect the product categories of your input data ("SCENARIO category week", "Actual (Ac)", "Scenario (Sc)", etc.). The "SCENARIO region" tab should reflect the regions of your stores as laid out in the "Store to Region" tab. All necessary changes are marked with a cell comment in the spreadsheet (red triangle in top-right corner of the cell).
 
 ### 3.3. Scenario Planning
-The "Adjust Impact by State" tab allows a user to suppose that certain regional effects will be greater than others. The values represent the hypothesized percent increase or decrease from predicted values based on the state alone.
+The "SCENARIO metric" tab allows a user to select the metric desired for the analysis (e.g., revenue, traffic, units sold).
 
-The "Adjust Category Effects" tab allows the user to adjust hypothesized percent increase or decrease from predicted values at the category-week level.
+The "SCENARIO category week" tab allows the user to adjust hypothesized percent increase or decrease from predicted values at the category-week level.
+
+The "SCENARIO region" tab allows a user to suppose that certain regional effects will be greater than others.
+
 ### 3.4. Outputs
-These tabs summarize projected effects and effects observed so far using the raw input data and the user-adjusted scenario planning fields. The projected impact can be viewed at an overall or individual store level. The "Impact To-Date" tab summarizes impact observed by comparing predicted vs. actual for available data.
+The "Actuals (Ac)" tab reflects the to-date actual volume across all stores.
+
+The "Scenario (Sc)" tab reflects the scenario volume by category and week, calcualted based on your inputs.
+
+The "Projections (Pr)" tab reflects the model's volume projections by category and week.
+
+The "Actual Impact (Ac-Pr)" tab reflects the actual impact, which is the net of actuals to projections (ie, how much we are above/below projection to date).
+
+The "Scenario Impact (Sc-Pr)" tab reflects the scenario impact by category week based on user impacts (ie, how much the scenario is above/below the projections).
+
+The "CHART Impact" tab reflects some visualizations of the prior tabs. Specifically, you can view the Trend and Impact (actual, projected, scenario). You can adjust if you want to view these carts by category or for "All Products" in cell K2.
